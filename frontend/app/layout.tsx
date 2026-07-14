@@ -1,5 +1,7 @@
 import { JetBrains_Mono } from "next/font/google";
 import "./globals.css";
+import { AppStateProvider } from "@/lib/AppStateContext";
+import NavBar from "@/components/NavBar";
 
 const mono = JetBrains_Mono({
   subsets: ["latin"],
@@ -15,7 +17,12 @@ export const metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={mono.variable}>
-      <body className="font-mono">{children}</body>
+      <body className="font-mono bg-paper min-h-screen">
+        <AppStateProvider>
+          <NavBar />
+          <div className="max-w-xl mx-auto px-4 py-8">{children}</div>
+        </AppStateProvider>
+      </body>
     </html>
   );
 }

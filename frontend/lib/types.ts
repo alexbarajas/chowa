@@ -24,3 +24,9 @@ export type Recipe = {
   macro_estimate: { calories: number | null; protein_g: number | null };
   equipment_used: string[];
 };
+
+export type RecipeHistoryEntry = {
+  id: string;
+  createdAt: string; // ISO timestamp
+  recipe: Recipe;
+};
