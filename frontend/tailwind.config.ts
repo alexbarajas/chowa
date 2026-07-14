@@ -5,18 +5,14 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        paper: "#F2EEE2",       // thermal-paper cream
-        ink: "#211F1C",         // near-black ink
-        rail: "#C9C2AC",        // rail / dashed divider tone
-        stamp: "#B3231C",       // rubber-stamp red accent
-        stampdark: "#7A1712",
+        paper: "var(--color-paper)",
+        ink: "var(--color-ink)",
+        rail: "var(--color-rail)",
+        stamp: "var(--color-stamp)",
+        stampdark: "var(--color-stampdark)",
       },
       fontFamily: {
         mono: ["var(--font-mono)", "ui-monospace", "SFMono-Regular", "monospace"],
-      },
-      backgroundImage: {
-        perforation:
-          "radial-gradient(circle, transparent 4px, #F2EEE2 4px) top / 16px 8px repeat-x",
       },
     },
   },

@@ -1,6 +1,7 @@
 import { JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { AppStateProvider } from "@/lib/AppStateContext";
+import { ThemeProvider } from "@/lib/ThemeContext";
 import NavBar from "@/components/NavBar";
 
 const mono = JetBrains_Mono({
@@ -16,12 +17,14 @@ export const metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={mono.variable}>
+    <html lang="en" className={mono.variable} data-theme="light">
       <body className="font-mono bg-paper min-h-screen">
-        <AppStateProvider>
-          <NavBar />
-          <div className="max-w-xl mx-auto px-4 py-8">{children}</div>
-        </AppStateProvider>
+        <ThemeProvider>
+          <AppStateProvider>
+            <NavBar />
+            <div className="max-w-xl mx-auto px-4 py-8">{children}</div>
+          </AppStateProvider>
+        </ThemeProvider>
       </body>
     </html>
   );
