@@ -1,0 +1,27 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  background-color: #F2EEE2;
+  color: #211F1C;
+}
+
+/* Dashed tear-line between ticket sections */
+.tear-line {
+  border-bottom: 2px dashed #C9C2AC;
+}
+
+/* Scalloped perforation edge, like a torn receipt */
+.perforated-top {
+  background-image: radial-gradient(circle at center, #F2EEE2 4px, transparent 4.5px);
+  background-size: 16px 16px;
+  background-position: top center;
+  background-repeat: repeat-x;
+  background-color: #211F1C;
+  padding-top: 12px;
+}
+
+.ticket-shadow {
+  box-shadow: 0 1px 0 rgba(33, 31, 28, 0.06), 0 8px 24px rgba(33, 31, 28, 0.08);
+}
