@@ -77,6 +77,13 @@ Everything currently runs on local React state — no database required to build
 3. Grab your project URL + anon key (Settings → API) for the frontend, and the service role key for the backend.
 4. Wire `ProfileMenu.tsx` to `supabase.auth`, and connect `profiles.id` to the authenticated user.
 
+## Future: smarter, more automatic inventory
+
+Planned, not built — the category picker and frozen checkbox added now are the manual version of this; both ideas below would reduce user effort over time rather than replace what exists:
+
+- **Auto-categorize on add**: infer an ingredient's category (and maybe a default freshness window) from its free-text name instead of asking the user to pick it every time. Needs either an LLM call per ingredient add or a lightweight local lookup table — worth deciding which once real usage shows how often people actually change the auto-guess.
+- **Learn quality patterns over time**: if the app notices a user consistently logs lower- or higher-quality ingredients (e.g. based on brand/cut mentioned, or explicit feedback), let that bias recommendations and freshness assumptions accordingly. This needs real usage history to be worth anything — revisit once Supabase persistence exists and there's actual data to learn from.
+
 ## Future: goal-based health coaching
 
 Planned, not yet built — this is the fuller version of the "digital nutritionist" idea from the original brief, and the reason `activity_logs` exists. Fold in once we're back working on the backend:

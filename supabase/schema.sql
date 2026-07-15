@@ -31,6 +31,7 @@ create table ingredients (
   quantity numeric,
   unit text,
   storage_location text,          -- 'fridge' | 'freezer' | 'pantry'
+  frozen boolean not null default false,
   date_added date not null default current_date,
   estimated_expiry date,
   notes text,

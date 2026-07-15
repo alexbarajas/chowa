@@ -1,7 +1,11 @@
+export type IngredientCategory = "protein" | "produce" | "dairy" | "pantry" | "other";
+
 export type Ingredient = {
   id: string;
   name: string; // free text, e.g. "0.5-inch thick ribeye"
   dateAdded: string; // ISO date string, e.g. "2026-07-14"
+  category: IngredientCategory;
+  frozen: boolean;
 };
 
 export type Equipment = {

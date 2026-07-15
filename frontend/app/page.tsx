@@ -31,7 +31,7 @@ export default function KitchenPage() {
     try {
       const result = (await generateRecipe({
         ingredients: ingredients.map((i) => ({
-          name: `${i.name} (${freshnessLabel(daysSince(i.dateAdded)).text})`,
+          name: `${i.name} (${freshnessLabel(daysSince(i.dateAdded), i.category, i.frozen).text})`,
         })),
         equipment: equipment.map((e) => ({
           name: e.name,
