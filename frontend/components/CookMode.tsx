@@ -16,7 +16,7 @@ function formatDuration(seconds: number | null) {
 
 export default function CookMode({ recipe }: Props) {
   return (
-    <div className="mt-6">
+    <div className="mt-6 ticket-fade-in">
       {/* Perforated tear-line, as if this ticket was just pulled off the rail */}
       <div className="perforated-top h-4" />
       <div className="bg-ink text-paper px-5 pt-4 pb-5 ticket-shadow">

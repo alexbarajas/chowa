@@ -47,3 +47,18 @@ body {
     0 1px 0 rgba(var(--shadow-rgb), 0.06),
     0 8px 24px rgba(var(--shadow-rgb), 0.08);
 }
+
+@keyframes ticket-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.ticket-fade-in {
+  animation: ticket-fade-in 0.25s ease-out;
+}

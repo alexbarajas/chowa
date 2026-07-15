@@ -27,6 +27,7 @@ Rules:
 (e.g. a specific holding temperature, a pan material affecting heat behavior).
 - Total active + wait time across steps must fit within the time constraint.
 - If activity_level is "heavy_workout", bias toward higher protein / recovery-friendly choices.
+- If an ingredient's name includes an age/freshness note (e.g. "use soon"), prioritize using it over less time-sensitive items.
 """
 
 

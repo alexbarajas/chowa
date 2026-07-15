@@ -3,9 +3,11 @@
 import { useState } from "react";
 import ActivityPicker from "@/components/ActivityPicker";
 import CookMode from "@/components/CookMode";
+import TicketSkeleton from "@/components/TicketSkeleton";
 import { generateRecipe } from "@/lib/backend";
 import { useAppState } from "@/lib/AppStateContext";
 import { Recipe } from "@/lib/types";
+import { daysSince, freshnessLabel } from "@/lib/dateUtils";
 
 export default function KitchenPage() {
   const {
@@ -28,7 +30,9 @@ export default function KitchenPage() {
     setRecipe(null);
     try {
       const result = (await generateRecipe({
-        ingredients: ingredients.map((i) => ({ name: i.name })),
+        ingredients: ingredients.map((i) => ({
+          name: `${i.name} (${freshnessLabel(daysSince(i.dateAdded)).text})`,
+        })),
         equipment: equipment.map((e) => ({
           name: e.name,
           category: e.category,
@@ -83,7 +87,8 @@ export default function KitchenPage() {
           {error}
         </p>
       )}
-      {recipe && <CookMode recipe={recipe} />}
+      {loading && <TicketSkeleton />}
+      {!loading && recipe && <CookMode recipe={recipe} />}
     </div>
   );
 }
