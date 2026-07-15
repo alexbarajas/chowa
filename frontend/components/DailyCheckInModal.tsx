@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useAppState } from "@/lib/AppStateContext";
+import { useClickOutside } from "@/lib/useClickOutside";
 
 const SLEEP_QUALITY = [
   { value: 1, label: "Rough" },
@@ -18,6 +19,11 @@ export default function DailyCheckInModal() {
   const [feeling, setFeeling] = useState(todayCheckIn?.feeling ?? "");
   const [foodChanges, setFoodChanges] = useState(todayCheckIn?.foodChanges ?? "");
 
+  const modalRef = useRef<HTMLDivElement>(null);
+  useClickOutside(modalRef, () => {
+    if (checkInOpen) closeCheckIn();
+  });
+
   if (!checkInOpen) return null;
 
   function handleSubmit() {
@@ -25,11 +31,17 @@ export default function DailyCheckInModal() {
   }
 
   return (
-    <div className="fixed inset-0 bg-ink/40 flex items-center justify-center z-50 p-4">
-      <div className="bg-paper border border-ink/20 ticket-shadow w-full max-w-sm ticket-fade-in">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{ backgroundColor: "rgba(0, 0, 0, 0.7)" }}
+    >
+      <div
+        ref={modalRef}
+        className="bg-paper text-ink border border-ink/20 ticket-shadow w-full max-w-sm ticket-fade-in"
+      >
         <div className="tear-line px-4 pt-3 pb-2 flex justify-between items-baseline">
           <h2 className="text-xs tracking-[0.2em] uppercase font-bold">Morning check-in</h2>
-          <button onClick={closeCheckIn} className="text-ink/40 hover:text-stamp text-xs">
+          <button onClick={closeCheckIn} className="text-ink/40 hover:text-stamp text-xs uppercase tracking-wide">
             close
           </button>
         </div>
@@ -49,7 +61,7 @@ export default function DailyCheckInModal() {
           </label>
 
           <div>
-            <p className="text-xs uppercase tracking-wide text-ink/60 mb-1">Sleep quality</p>
+            <p className="text-xs uppercase tracking-wide text-ink/60 mb-1.5">Sleep quality</p>
             <div className="flex gap-1.5">
               {SLEEP_QUALITY.map((q) => (
                 <button
@@ -57,8 +69,8 @@ export default function DailyCheckInModal() {
                   onClick={() => setSleepQuality(q.value)}
                   className={`flex-1 text-xs uppercase tracking-wide py-1.5 border transition-colors ${
                     sleepQuality === q.value
-                      ? "bg-ink text-paper border-ink"
-                      : "border-ink/25 text-ink/50 hover:text-ink"
+                      ? "bg-ink text-paper border-ink font-bold"
+                      : "border-ink/25 text-ink/50 hover:text-ink hover:border-ink/50"
                   }`}
                 >
                   {q.label}
@@ -73,7 +85,7 @@ export default function DailyCheckInModal() {
               value={feeling}
               onChange={(e) => setFeeling(e.target.value)}
               placeholder="e.g. a bit sore, mostly good"
-              className="mt-1 w-full bg-transparent border-b border-ink/30 px-1 py-1 text-sm normal-case placeholder:text-ink/35 focus:outline-none focus:border-stamp"
+              className="mt-1 w-full bg-transparent border-b border-ink/30 px-1 py-1 text-sm normal-case text-ink placeholder:text-ink/35 focus:outline-none focus:border-stamp"
             />
           </label>
 
@@ -84,7 +96,7 @@ export default function DailyCheckInModal() {
               onChange={(e) => setFoodChanges(e.target.value)}
               placeholder="e.g. used up the salmon, picked up more eggs"
               rows={2}
-              className="mt-1 w-full bg-transparent border-b border-ink/30 px-1 py-1 text-sm normal-case placeholder:text-ink/35 focus:outline-none focus:border-stamp resize-none"
+              className="mt-1 w-full bg-transparent border-b border-ink/30 px-1 py-1 text-sm normal-case text-ink placeholder:text-ink/35 focus:outline-none focus:border-stamp resize-none"
             />
           </label>
         </div>
