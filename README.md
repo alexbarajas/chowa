@@ -14,7 +14,6 @@ chowa/
 ## Local setup
 
 ### One-time setup
-
 ```bash
 # Backend
 cd backend
@@ -30,13 +29,10 @@ cp .env.example .env.local
 ```
 
 ### Every time you want to run it
-
 From the repo root:
-
 ```bash
 ./dev.sh
 ```
-
 Starts both the backend (`http://localhost:8000`) and frontend (`http://localhost:3000`) together, and stops both on Ctrl+C. Check `http://localhost:8000/health` if something seems off — it should return `{"status":"ok"}`.
 
 ## Testing
@@ -71,7 +67,6 @@ Light / Dark / System, switchable from the nav bar (persists via `localStorage`)
 ## Not needed yet: Supabase
 
 Everything currently runs on local React state — no database required to build/test the UI. This stops being optional once more than one person uses the app (in-memory state means a refresh wipes everything), so treat it as the next major milestone once the UI feels right. When we do wire it up:
-
 1. Create a project at supabase.com.
 2. Run `supabase/schema.sql` in the SQL editor.
 3. Grab your project URL + anon key (Settings → API) for the frontend, and the service role key for the backend.
@@ -86,9 +81,8 @@ Planned, not built — the category picker and frozen checkbox added now are the
 
 ## Future: goal-based health coaching
 
-Planned, not yet built — this is the fuller version of the "digital nutritionist" idea from the original brief, and the reason `activity_logs` exists. Fold in once we're back working on the backend:
+Partially built — `app/goals/page.tsx` covers the long-term goal (recover/maintain/gain), stored in `localStorage` and fed into recipe generation as `goal_context`, with a ~weekly reconfirmation nudge. `supabase/schema.sql` has matching `goal`/`goal_set_at`/`goal_last_confirmed_at` columns on `profiles` for when this moves off localStorage. Still not built — this is the fuller version of the "digital nutritionist" idea from the original brief, and the reason `activity_logs` exists:
 
-- **User-set goal**: recover / maintain / gain strength (or similar), used to bias every recommendation. Meant to be long-term and stable — not re-declared every session — but the app should periodically (roughly weekly) check in and ask if it's still accurate. Day-to-day recommendations should still be able to flex around it based on shorter-term factors (holidays, recent adherence, how the person says they've been feeling) without changing the underlying goal itself.
 - Track actual daily body weight, not just an activity-level category.
 - Log the previous day's food and physical activity, not just "how do you feel right now."
 - Macro targets beyond the current placeholder: carbs, protein, **and sodium**.

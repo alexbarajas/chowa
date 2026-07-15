@@ -7,6 +7,9 @@ create table profiles (
   display_name text,
   subscription_tier text not null default 'free', -- 'free' | 'plus'
   daily_step_goal int,
+  goal text,                      -- 'recover' | 'maintain' | 'gain'
+  goal_set_at timestamptz,
+  goal_last_confirmed_at timestamptz,
   created_at timestamptz not null default now()
 );
 

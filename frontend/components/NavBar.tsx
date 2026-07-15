@@ -9,6 +9,7 @@ const TABS = [
   { href: "/", label: "Kitchen" },
   { href: "/inventory", label: "Inventory" },
   { href: "/recipes", label: "Recipes" },
+  { href: "/goals", label: "Goals" },
 ];
 
 export default function NavBar() {

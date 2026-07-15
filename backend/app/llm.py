@@ -32,6 +32,10 @@ Rules:
 - If sleep_context indicates poor or short sleep, bias toward lighter, hydrating, easier-to-digest \
 choices, and go easy on heavy or very fatty foods. If it indicates good sleep and high activity, \
 recovery-focused suggestions are fine as normal. Don't mention sleep explicitly in the recipe title.
+- If goal_context is "goal: recover", prioritize protein and easy digestion over volume. If "goal: gain", \
+bias toward a calorie and protein surplus. If "goal: maintain", keep macros balanced without pushing \
+either direction. The goal is the dominant, longer-term signal — sleep and activity level should \
+adjust the recipe within that goal, not override it.
 """
 
 
@@ -62,6 +66,7 @@ def _mock_recipe(request: RecipeRequest) -> RecipeResponse:
     equipment_names = [e.name for e in request.equipment]
 
     sleep_note = f" Sleep context noted: {request.sleep_context}." if request.sleep_context else ""
+    goal_note = f" Goal context noted: {request.goal_context}." if request.goal_context else ""
 
     return RecipeResponse(
         title=f"[MOCK] Quick plate with {ingredient_names[0]}",
@@ -84,7 +89,7 @@ def _mock_recipe(request: RecipeRequest) -> RecipeResponse:
                 "step_number": 3,
                 "instruction": (
                     "Plate and serve. (This is placeholder mock data — set "
-                    f"ANTHROPIC_API_KEY or swap in Gemini to get real recipes.{sleep_note})"
+                    f"ANTHROPIC_API_KEY or swap in Gemini to get real recipes.{sleep_note}{goal_note})"
                 ),
                 "duration_seconds": None,
             },
@@ -107,6 +112,7 @@ def generate_recipe(request: RecipeRequest) -> RecipeResponse:
         "time_constraint_min": request.time_constraint_min,
         "activity_level": request.activity_level,
         "sleep_context": request.sleep_context,
+        "goal_context": request.goal_context,
     }
 
     response = client.messages.create(

@@ -44,3 +44,11 @@ export type DailyCheckIn = {
   feeling: string;
   foodChanges: string;
 };
+
+export type GoalType = "recover" | "maintain" | "gain";
+
+export type GoalState = {
+  goal: GoalType;
+  setDate: string; // ISO date the goal was set or last changed
+  lastConfirmedDate: string; // ISO date of the last "yes, still my goal" confirmation
+};

@@ -6,6 +6,7 @@ export type RecipeRequest = {
   time_constraint_min: number;
   activity_level?: string;
   sleep_context?: string;
+  goal_context?: string;
 };
 
 export async function generateRecipe(payload: RecipeRequest) {

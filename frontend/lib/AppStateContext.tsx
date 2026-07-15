@@ -5,11 +5,14 @@ import {
   ActivityLevel,
   DailyCheckIn,
   Equipment,
+  GoalState,
+  GoalType,
   Ingredient,
   RecipeHistoryEntry,
 } from "@/lib/types";
-import { todayIsoDate } from "@/lib/dateUtils";
+import { todayIsoDate, daysSince } from "@/lib/dateUtils";
 import { loadCheckIns, saveCheckIn } from "@/lib/checkInStorage";
+import { loadGoal, saveGoal } from "@/lib/goalStorage";
 
 type AppState = {
   ingredients: Ingredient[];
@@ -32,6 +35,12 @@ type AppState = {
   closeCheckIn: () => void;
   submitCheckIn: (entry: Omit<DailyCheckIn, "date" | "skipped">) => void;
   skipCheckIn: () => void;
+
+  // Long-term goal
+  goal: GoalState | null;
+  needsGoalConfirmation: boolean;
+  setGoal: (goal: GoalType) => void;
+  confirmGoal: () => void;
 };
 
 // NOTE: most of this is in-memory only, so it resets on refresh — except
@@ -49,15 +58,17 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 
   const [checkIns, setCheckIns] = useState<Record<string, DailyCheckIn>>({});
   const [checkInOpen, setCheckInOpen] = useState(false);
+  const [goal, setGoalState] = useState<GoalState | null>(null);
 
   // On first mount, load saved check-ins and auto-open the modal if
-  // today doesn't have one yet.
+  // today doesn't have one yet. Also load the saved long-term goal, if any.
   useEffect(() => {
     const loaded = loadCheckIns();
     setCheckIns(loaded);
     if (!loaded[todayIsoDate()]) {
       setCheckInOpen(true);
     }
+    setGoalState(loadGoal());
   }, []);
 
   function addRecipeToHistory(entry: RecipeHistoryEntry) {
@@ -95,6 +106,26 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 
   const todayCheckIn = checkIns[todayIsoDate()] ?? null;
 
+  function setGoal(goalType: GoalType) {
+    const full: GoalState = {
+      goal: goalType,
+      setDate: todayIsoDate(),
+      lastConfirmedDate: todayIsoDate(),
+    };
+    saveGoal(full);
+    setGoalState(full);
+  }
+
+  function confirmGoal() {
+    if (!goal) return;
+    const updated: GoalState = { ...goal, lastConfirmedDate: todayIsoDate() };
+    saveGoal(updated);
+    setGoalState(updated);
+  }
+
+  // Nudge to reconfirm roughly weekly, per the plan discussed for goal cadence
+  const needsGoalConfirmation = goal != null && daysSince(goal.lastConfirmedDate) >= 7;
+
   return (
     <AppStateContext.Provider
       value={{
@@ -116,6 +147,10 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
         closeCheckIn: () => setCheckInOpen(false),
         submitCheckIn,
         skipCheckIn,
+        goal,
+        needsGoalConfirmation,
+        setGoal,
+        confirmGoal,
       }}
     >
       {children}

@@ -20,6 +20,7 @@ export default function KitchenPage() {
     addRecipeToHistory,
     todayCheckIn,
     openCheckIn,
+    goal,
   } = useAppState();
 
   const [recipe, setRecipe] = useState<Recipe | null>(null);
@@ -53,6 +54,7 @@ export default function KitchenPage() {
         time_constraint_min: timeConstraintMin,
         activity_level: activityLevel,
         sleep_context: buildSleepContext(),
+        goal_context: goal ? `goal: ${goal.goal}` : undefined,
       })) as Recipe;
 
       setRecipe(result);
