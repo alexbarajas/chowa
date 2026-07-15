@@ -35,3 +35,12 @@ export type RecipeHistoryEntry = {
   createdAt: string; // ISO timestamp
   recipe: Recipe;
 };
+
+export type DailyCheckIn = {
+  date: string; // ISO date string
+  skipped: boolean;
+  sleepHours: number | null;
+  sleepQuality: number | null; // 1 (rough) – 4 (great)
+  feeling: string;
+  foodChanges: string;
+};

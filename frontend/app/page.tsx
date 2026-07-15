@@ -18,11 +18,23 @@ export default function KitchenPage() {
     timeConstraintMin,
     setTimeConstraintMin,
     addRecipeToHistory,
+    todayCheckIn,
+    openCheckIn,
   } = useAppState();
 
   const [recipe, setRecipe] = useState<Recipe | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  function buildSleepContext(): string | undefined {
+    if (!todayCheckIn || todayCheckIn.skipped) return undefined;
+    const parts: string[] = [];
+    if (todayCheckIn.sleepHours != null) parts.push(`slept ${todayCheckIn.sleepHours}h`);
+    if (todayCheckIn.sleepQuality != null) parts.push(`sleep quality ${todayCheckIn.sleepQuality}/4`);
+    if (todayCheckIn.feeling) parts.push(`feeling: ${todayCheckIn.feeling}`);
+    if (todayCheckIn.foodChanges) parts.push(`food changes today: ${todayCheckIn.foodChanges}`);
+    return parts.length > 0 ? parts.join(", ") : undefined;
+  }
 
   async function handleGenerate() {
     setLoading(true);
@@ -40,6 +52,7 @@ export default function KitchenPage() {
         })),
         time_constraint_min: timeConstraintMin,
         activity_level: activityLevel,
+        sleep_context: buildSleepContext(),
       })) as Recipe;
 
       setRecipe(result);
@@ -57,6 +70,26 @@ export default function KitchenPage() {
 
   return (
     <div>
+      {todayCheckIn && !todayCheckIn.skipped && (
+        <div className="flex items-center justify-between text-xs text-ink/50 mb-4 border border-ink/10 px-3 py-2">
+          <span>
+            Today: {todayCheckIn.sleepHours}h sleep · quality {todayCheckIn.sleepQuality}/4
+            {todayCheckIn.feeling && ` · feeling: ${todayCheckIn.feeling}`}
+          </span>
+          <button onClick={openCheckIn} className="underline hover:text-stamp shrink-0 ml-2">
+            edit
+          </button>
+        </div>
+      )}
+      {todayCheckIn?.skipped && (
+        <div className="flex items-center justify-between text-xs text-ink/40 mb-4">
+          <span>Skipped today's check-in</span>
+          <button onClick={openCheckIn} className="underline hover:text-stamp">
+            add one
+          </button>
+        </div>
+      )}
+
       {ingredients.length === 0 && (
         <p className="text-sm text-ink/50 mb-4">
           No ingredients yet — add some on the{" "}

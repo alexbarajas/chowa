@@ -17,6 +17,7 @@ class RecipeRequest(BaseModel):
     equipment: list[EquipmentItem]
     time_constraint_min: int
     activity_level: Optional[str] = None  # 'heavy_workout' | 'active_light' | 'sedentary'
+    sleep_context: Optional[str] = None  # e.g. "slept 6.5h, sleep quality 2/4, feeling: foggy"
 
 
 class RecipeStep(BaseModel):

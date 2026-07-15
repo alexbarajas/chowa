@@ -10,8 +10,9 @@ client = Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
 
 SYSTEM_PROMPT = """You are a precise cooking assistant. Given a list of \
 ingredients (free text, may include cut/thickness/age), a list of kitchen \
-equipment (with capability details), a time constraint in minutes, and an \
-optional activity level, produce ONE recipe.
+equipment (with capability details), a time constraint in minutes, an \
+optional activity level, and optional sleep/how-they're-feeling context, \
+produce ONE recipe.
 
 Respond with ONLY a JSON object, no preamble, no markdown fences. Shape:
 {
@@ -28,6 +29,9 @@ Rules:
 - Total active + wait time across steps must fit within the time constraint.
 - If activity_level is "heavy_workout", bias toward higher protein / recovery-friendly choices.
 - If an ingredient's name includes an age/freshness note (e.g. "use soon"), prioritize using it over less time-sensitive items.
+- If sleep_context indicates poor or short sleep, bias toward lighter, hydrating, easier-to-digest \
+choices, and go easy on heavy or very fatty foods. If it indicates good sleep and high activity, \
+recovery-focused suggestions are fine as normal. Don't mention sleep explicitly in the recipe title.
 """
 
 
@@ -57,6 +61,8 @@ def _mock_recipe(request: RecipeRequest) -> RecipeResponse:
     ingredient_names = [i.name for i in request.ingredients] or ["whatever's on hand"]
     equipment_names = [e.name for e in request.equipment]
 
+    sleep_note = f" Sleep context noted: {request.sleep_context}." if request.sleep_context else ""
+
     return RecipeResponse(
         title=f"[MOCK] Quick plate with {ingredient_names[0]}",
         steps=[
@@ -76,7 +82,10 @@ def _mock_recipe(request: RecipeRequest) -> RecipeResponse:
             },
             {
                 "step_number": 3,
-                "instruction": "Plate and serve. (This is placeholder mock data — set ANTHROPIC_API_KEY or swap in Gemini to get real recipes.)",
+                "instruction": (
+                    "Plate and serve. (This is placeholder mock data — set "
+                    f"ANTHROPIC_API_KEY or swap in Gemini to get real recipes.{sleep_note})"
+                ),
                 "duration_seconds": None,
             },
         ],
@@ -97,6 +106,7 @@ def generate_recipe(request: RecipeRequest) -> RecipeResponse:
         ],
         "time_constraint_min": request.time_constraint_min,
         "activity_level": request.activity_level,
+        "sleep_context": request.sleep_context,
     }
 
     response = client.messages.create(

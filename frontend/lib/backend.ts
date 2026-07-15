@@ -5,6 +5,7 @@ export type RecipeRequest = {
   equipment: { name: string; category: string; capabilities?: Record<string, unknown> }[];
   time_constraint_min: number;
   activity_level?: string;
+  sleep_context?: string;
 };
 
 export async function generateRecipe(payload: RecipeRequest) {

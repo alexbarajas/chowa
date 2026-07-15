@@ -3,6 +3,7 @@ import "./globals.css";
 import { AppStateProvider } from "@/lib/AppStateContext";
 import { ThemeProvider } from "@/lib/ThemeContext";
 import NavBar from "@/components/NavBar";
+import DailyCheckInModal from "@/components/DailyCheckInModal";
 
 const mono = JetBrains_Mono({
   subsets: ["latin"],
@@ -23,6 +24,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <AppStateProvider>
             <NavBar />
             <div className="max-w-xl mx-auto px-4 py-8">{children}</div>
+            <DailyCheckInModal />
           </AppStateProvider>
         </ThemeProvider>
       </body>
