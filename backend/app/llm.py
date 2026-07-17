@@ -4,7 +4,7 @@ import re
 
 from anthropic import Anthropic
 
-from app.models import RecipeRequest, RecipeResponse
+from app.models import GoalRequest, GoalResponse, RecipeRequest, RecipeResponse
 
 client = Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
 
@@ -33,9 +33,11 @@ Rules:
 choices, and go easy on heavy or very fatty foods. If it indicates good sleep and high activity, \
 recovery-focused suggestions are fine as normal. Don't mention sleep explicitly in the recipe title.
 - If goal_context is "goal: recover", prioritize protein and easy digestion over volume. If "goal: gain", \
-bias toward a calorie and protein surplus. If "goal: maintain", keep macros balanced without pushing \
-either direction. The goal is the dominant, longer-term signal — sleep and activity level should \
-adjust the recipe within that goal, not override it.
+bias toward a calorie and protein surplus. If "goal: cut", bias toward a moderate calorie deficit while \
+keeping protein high to preserve muscle. If "goal: maintain", keep macros balanced without pushing \
+either direction. If goal_context starts with "goal: custom", follow the specific guidance given in it. \
+The goal is the dominant, longer-term signal — sleep and activity level should adjust the recipe within \
+that goal, not override it.
 """
 
 
@@ -127,3 +129,44 @@ def generate_recipe(request: RecipeRequest) -> RecipeResponse:
     )
     parsed = _extract_json(raw_text)
     return RecipeResponse(**parsed)
+
+
+GOAL_SYSTEM_PROMPT = """You turn a person's free-text description of what they \
+want into a short, structured nutrition/cooking goal.
+
+Respond with ONLY a JSON object, no preamble, no markdown fences. Shape:
+{
+  "summary": string,   // a short goal name/title, under 8 words
+  "guidance": string   // 1-2 sentences of practical food/macro guidance a recipe generator can use
+}
+
+The guidance should be concrete enough to bias food choices (e.g. "moderate calorie deficit, \
+keep protein high, limit late-night carbs") rather than vague encouragement.
+"""
+
+
+def _mock_goal(request: GoalRequest) -> GoalResponse:
+    """Used when no LLM API key is configured yet."""
+    return GoalResponse(
+        summary=f"[MOCK] Custom goal: {request.description[:40]}",
+        guidance=(
+            "Placeholder guidance — set ANTHROPIC_API_KEY or swap in Gemini to get a "
+            "real AI-generated goal summary."
+        ),
+    )
+
+
+def generate_goal_summary(request: GoalRequest) -> GoalResponse:
+    if not os.environ.get("ANTHROPIC_API_KEY"):
+        return _mock_goal(request)
+
+    response = client.messages.create(
+        model="claude-sonnet-4-6",
+        max_tokens=300,
+        system=GOAL_SYSTEM_PROMPT,
+        messages=[{"role": "user", "content": request.description}],
+    )
+
+    raw_text = "".join(block.text for block in response.content if block.type == "text")
+    parsed = _extract_json(raw_text)
+    return GoalResponse(**parsed)

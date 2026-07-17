@@ -5,8 +5,8 @@ load_dotenv()
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.llm import generate_recipe
-from app.models import RecipeRequest, RecipeResponse
+from app.llm import generate_goal_summary, generate_recipe
+from app.models import GoalRequest, GoalResponse, RecipeRequest, RecipeResponse
 
 app = FastAPI(title="Chowa backend")
 
@@ -29,3 +29,11 @@ def generate_recipe_endpoint(request: RecipeRequest):
         return generate_recipe(request)
     except Exception as e:
         raise HTTPException(status_code=502, detail=f"Recipe generation failed: {e}")
+
+
+@app.post("/generate-goal", response_model=GoalResponse)
+def generate_goal_endpoint(request: GoalRequest):
+    try:
+        return generate_goal_summary(request)
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"Goal generation failed: {e}")

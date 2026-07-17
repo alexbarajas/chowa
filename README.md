@@ -81,10 +81,15 @@ Planned, not built — the category picker and frozen checkbox added now are the
 
 ## Future: goal-based health coaching
 
-Partially built — `app/goals/page.tsx` covers the long-term goal (recover/maintain/gain), stored in `localStorage` and fed into recipe generation as `goal_context`, with a ~weekly reconfirmation nudge. `supabase/schema.sql` has matching `goal`/`goal_set_at`/`goal_last_confirmed_at` columns on `profiles` for when this moves off localStorage. Still not built — this is the fuller version of the "digital nutritionist" idea from the original brief, and the reason `activity_logs` exists:
+Partially built — `app/goals/page.tsx` covers:
+- Long-term goal selection: Recover / Maintain / Gain / Cut, or a **Custom** goal where you describe it in free text and `POST /generate-goal` (mock-aware, same pattern as recipes) turns it into a short summary + practical guidance.
+- A **baseline snapshot** captured the moment a goal is set (weight/feeling/sleep from that day's check-in, plus how many recipes had been generated so far), shown against current values as a "Then vs now" comparison — the point being to make progress visible enough that using the app regularly feels worth it.
+- A ~weekly reconfirmation nudge, and `goal_context` feeding into recipe generation exactly as discussed (goal is the dominant signal; sleep/activity adjust within it, not override it).
 
-- Track actual daily body weight, not just an activity-level category.
-- Log the previous day's food and physical activity, not just "how do you feel right now."
+All of this is stored in `localStorage` for now — `supabase/schema.sql` has matching columns on `profiles` (`goal`, `goal_custom_description`, `goal_custom_guidance`, `goal_baseline` as jsonb) and check-in fields folded into `activity_logs` for when this moves off localStorage.
+
+Still not built — this is the fuller version of the "digital nutritionist" idea from the original brief:
+
 - Macro targets beyond the current placeholder: carbs, protein, **and sodium**.
 - Correlate specific food choices (e.g. a large rice dinner, late-night snacks) with next-day weight/water-retention patterns.
 - Prioritize using fridge inventory before it spoils, and flag when something is best eaten soon for quality/taste, not just before it goes bad.

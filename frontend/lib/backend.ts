@@ -22,3 +22,17 @@ export async function generateRecipe(payload: RecipeRequest) {
 
   return res.json();
 }
+
+export async function generateGoalSummary(description: string) {
+  const res = await fetch(`${BACKEND_URL}/generate-goal`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ description }),
+  });
+
+  if (!res.ok) {
+    throw new Error(`Goal generation failed: ${res.status}`);
+  }
+
+  return res.json() as Promise<{ summary: string; guidance: string }>;
+}

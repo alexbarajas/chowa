@@ -4,6 +4,8 @@ import { useState } from "react";
 import { useAppState } from "@/lib/AppStateContext";
 import { GoalType } from "@/lib/types";
 import { daysSince } from "@/lib/dateUtils";
+import { mostRecentCheckIn } from "@/lib/checkInStorage";
+import { generateGoalSummary } from "@/lib/backend";
 
 const GOAL_OPTIONS: { id: GoalType; label: string; description: string }[] = [
   {
@@ -21,13 +23,39 @@ const GOAL_OPTIONS: { id: GoalType; label: string; description: string }[] = [
     label: "Gain",
     description: "Building muscle or strength — favor a calorie and protein surplus.",
   },
+  {
+    id: "cut",
+    label: "Cut",
+    description: "Losing fat while preserving strength — moderate calorie deficit, protein stays high.",
+  },
 ];
 
 export default function GoalsPage() {
-  const { goal, needsGoalConfirmation, setGoal, confirmGoal } = useAppState();
+  const { goal, needsGoalConfirmation, setGoal, confirmGoal, checkIns, recipeHistory } =
+    useAppState();
   const [changing, setChanging] = useState(false);
+  const [customText, setCustomText] = useState("");
+  const [customLoading, setCustomLoading] = useState(false);
+  const [customError, setCustomError] = useState<string | null>(null);
 
   const showPicker = !goal || changing;
+
+  async function handleCustomGoal() {
+    const trimmed = customText.trim();
+    if (!trimmed) return;
+    setCustomLoading(true);
+    setCustomError(null);
+    try {
+      const { summary, guidance } = await generateGoalSummary(trimmed);
+      setGoal("custom", { description: summary, guidance });
+      setChanging(false);
+      setCustomText("");
+    } catch (err) {
+      setCustomError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setCustomLoading(false);
+    }
+  }
 
   if (showPicker) {
     return (
@@ -53,6 +81,29 @@ export default function GoalsPage() {
               <p className="text-xs text-ink/60">{option.description}</p>
             </button>
           ))}
+
+          <div className="border border-dashed border-ink/25 p-4">
+            <p className="text-sm font-bold uppercase tracking-wide mb-1">Custom</p>
+            <p className="text-xs text-ink/60 mb-3">
+              Describe what you're going for — the AI will turn it into a short goal with
+              practical guidance.
+            </p>
+            <textarea
+              value={customText}
+              onChange={(e) => setCustomText(e.target.value)}
+              placeholder="e.g. I want to look good and feel light for a wedding in October"
+              rows={2}
+              className="w-full bg-transparent border-b border-ink/30 px-1 py-1 text-sm placeholder:text-ink/35 focus:outline-none focus:border-stamp resize-none mb-3"
+            />
+            <button
+              onClick={handleCustomGoal}
+              disabled={customLoading || !customText.trim()}
+              className="text-xs uppercase tracking-wide px-3 py-1.5 bg-ink text-paper hover:bg-stamp disabled:opacity-30 transition-colors"
+            >
+              {customLoading ? "Generating..." : "Generate goal"}
+            </button>
+            {customError && <p className="text-xs text-stamp mt-2">{customError}</p>}
+          </div>
         </div>
         {goal && changing && (
           <button
@@ -66,8 +117,28 @@ export default function GoalsPage() {
     );
   }
 
-  const currentOption = GOAL_OPTIONS.find((o) => o.id === goal!.goal)!;
+  const currentOption =
+    goal!.goal === "custom"
+      ? { label: goal!.customDescription ?? "Custom goal", description: goal!.customGuidance ?? "" }
+      : GOAL_OPTIONS.find((o) => o.id === goal!.goal)!;
   const daysSinceConfirm = daysSince(goal!.lastConfirmedDate);
+
+  // "Then vs now" comparison — fall back to an empty baseline defensively,
+  // in case older localStorage data predates this field (loadGoal backfills
+  // this on load too, but this keeps the page itself from ever crashing on it).
+  const baseline = goal!.baseline ?? {
+    date: goal!.setDate,
+    weight: null,
+    feeling: "",
+    sleepHours: null,
+    sleepQuality: null,
+    recipesCookedCount: 0,
+  };
+  const daysOnGoal = daysSince(baseline.date);
+  const latest = mostRecentCheckIn(checkIns);
+  const recipesSinceGoal = recipeHistory.length - baseline.recipesCookedCount;
+  const weightDelta =
+    baseline.weight != null && latest?.weight != null ? latest.weight - baseline.weight : null;
 
   return (
     <div>
@@ -85,7 +156,7 @@ export default function GoalsPage() {
         </div>
       )}
 
-      <div className="border border-ink/15 bg-paper ticket-shadow">
+      <div className="border border-ink/15 bg-paper ticket-shadow mb-4">
         <div className="flex items-baseline justify-between px-4 pt-3 pb-2 tear-line">
           <h2 className="text-xs tracking-[0.2em] uppercase font-bold">Current goal</h2>
           <span className="text-xs text-ink/40">
@@ -110,6 +181,74 @@ export default function GoalsPage() {
             >
               Change goal
             </button>
+          </div>
+        </div>
+      </div>
+
+      <div className="border border-ink/15 bg-paper ticket-shadow">
+        <div className="flex items-baseline justify-between px-4 pt-3 pb-2 tear-line">
+          <h2 className="text-xs tracking-[0.2em] uppercase font-bold">Then vs now</h2>
+          <span className="text-xs text-ink/40">
+            {daysOnGoal === 0 ? "started today" : `day ${daysOnGoal}`}
+          </span>
+        </div>
+        <div className="grid grid-cols-2 divide-x divide-dashed divide-ink/15">
+          <div className="p-4">
+            <p className="text-[10px] uppercase tracking-widest text-ink/40 mb-2">
+              Started {baseline.date}
+            </p>
+            <dl className="space-y-1 text-sm">
+              <div className="flex justify-between">
+                <dt className="text-ink/50">Weight</dt>
+                <dd>{baseline.weight != null ? baseline.weight : "—"}</dd>
+              </div>
+              <div className="flex justify-between">
+                <dt className="text-ink/50">Sleep</dt>
+                <dd>{baseline.sleepHours != null ? `${baseline.sleepHours}h` : "—"}</dd>
+              </div>
+              <div className="flex justify-between gap-2">
+                <dt className="text-ink/50 shrink-0">Feeling</dt>
+                <dd className="text-right">{baseline.feeling || "—"}</dd>
+              </div>
+              <div className="flex justify-between">
+                <dt className="text-ink/50">Recipes cooked</dt>
+                <dd>{baseline.recipesCookedCount}</dd>
+              </div>
+            </dl>
+          </div>
+          <div className="p-4">
+            <p className="text-[10px] uppercase tracking-widest text-ink/40 mb-2">Now</p>
+            <dl className="space-y-1 text-sm">
+              <div className="flex justify-between">
+                <dt className="text-ink/50">Weight</dt>
+                <dd>
+                  {latest?.weight != null ? latest.weight : "—"}
+                  {weightDelta != null && (
+                    <span className={`ml-1 text-xs ${weightDelta === 0 ? "text-ink/40" : "text-stamp"}`}>
+                      ({weightDelta > 0 ? "+" : ""}
+                      {weightDelta.toFixed(1)})
+                    </span>
+                  )}
+                </dd>
+              </div>
+              <div className="flex justify-between">
+                <dt className="text-ink/50">Sleep</dt>
+                <dd>{latest?.sleepHours != null ? `${latest.sleepHours}h` : "—"}</dd>
+              </div>
+              <div className="flex justify-between gap-2">
+                <dt className="text-ink/50 shrink-0">Feeling</dt>
+                <dd className="text-right">{latest?.feeling || "—"}</dd>
+              </div>
+              <div className="flex justify-between">
+                <dt className="text-ink/50">Recipes cooked</dt>
+                <dd>
+                  {recipeHistory.length}
+                  {recipesSinceGoal > 0 && (
+                    <span className="text-stamp text-xs ml-1">(+{recipesSinceGoal})</span>
+                  )}
+                </dd>
+              </div>
+            </dl>
           </div>
         </div>
       </div>

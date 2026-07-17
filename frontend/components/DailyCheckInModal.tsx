@@ -14,6 +14,7 @@ const SLEEP_QUALITY = [
 export default function DailyCheckInModal() {
   const { checkInOpen, closeCheckIn, submitCheckIn, skipCheckIn, todayCheckIn } = useAppState();
 
+  const [weight, setWeight] = useState<number | "">(todayCheckIn?.weight ?? "");
   const [sleepHours, setSleepHours] = useState(todayCheckIn?.sleepHours ?? 7);
   const [sleepQuality, setSleepQuality] = useState(todayCheckIn?.sleepQuality ?? 3);
   const [feeling, setFeeling] = useState(todayCheckIn?.feeling ?? "");
@@ -27,7 +28,13 @@ export default function DailyCheckInModal() {
   if (!checkInOpen) return null;
 
   function handleSubmit() {
-    submitCheckIn({ sleepHours, sleepQuality, feeling, foodChanges });
+    submitCheckIn({
+      weight: weight === "" ? null : weight,
+      sleepHours,
+      sleepQuality,
+      feeling,
+      foodChanges,
+    });
   }
 
   return (
@@ -47,6 +54,18 @@ export default function DailyCheckInModal() {
         </div>
 
         <div className="p-4 space-y-4">
+          <label className="block text-xs uppercase tracking-wide text-ink/60">
+            Weight today (optional)
+            <input
+              type="number"
+              step={0.1}
+              value={weight}
+              onChange={(e) => setWeight(e.target.value === "" ? "" : Number(e.target.value))}
+              placeholder="e.g. 178.4"
+              className="mt-1 w-full bg-transparent border-b border-ink/30 px-1 py-1 text-sm text-ink normal-case placeholder:text-ink/35 focus:outline-none focus:border-stamp"
+            />
+          </label>
+
           <label className="block text-xs uppercase tracking-wide text-ink/60">
             Hours slept
             <input

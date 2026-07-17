@@ -39,16 +39,29 @@ export type RecipeHistoryEntry = {
 export type DailyCheckIn = {
   date: string; // ISO date string
   skipped: boolean;
+  weight: number | null;
   sleepHours: number | null;
   sleepQuality: number | null; // 1 (rough) – 4 (great)
   feeling: string;
   foodChanges: string;
 };
 
-export type GoalType = "recover" | "maintain" | "gain";
+export type GoalType = "recover" | "maintain" | "gain" | "cut" | "custom";
+
+export type GoalBaseline = {
+  date: string; // ISO date the baseline was captured
+  weight: number | null;
+  feeling: string;
+  sleepHours: number | null;
+  sleepQuality: number | null;
+  recipesCookedCount: number; // recipeHistory.length at the moment the goal was set
+};
 
 export type GoalState = {
   goal: GoalType;
+  customDescription?: string; // only for goal === "custom" — the AI-generated summary
+  customGuidance?: string; // only for goal === "custom" — short guidance fed into recipe generation
   setDate: string; // ISO date the goal was set or last changed
   lastConfirmedDate: string; // ISO date of the last "yes, still my goal" confirmation
+  baseline: GoalBaseline;
 };

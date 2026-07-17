@@ -5,6 +5,7 @@ import {
   ActivityLevel,
   DailyCheckIn,
   Equipment,
+  GoalBaseline,
   GoalState,
   GoalType,
   Ingredient,
@@ -30,6 +31,7 @@ type AppState = {
 
   // Daily check-in
   todayCheckIn: DailyCheckIn | null;
+  checkIns: Record<string, DailyCheckIn>;
   checkInOpen: boolean;
   openCheckIn: () => void;
   closeCheckIn: () => void;
@@ -39,14 +41,14 @@ type AppState = {
   // Long-term goal
   goal: GoalState | null;
   needsGoalConfirmation: boolean;
-  setGoal: (goal: GoalType) => void;
+  setGoal: (goal: GoalType, custom?: { description: string; guidance: string }) => void;
   confirmGoal: () => void;
 };
 
 // NOTE: most of this is in-memory only, so it resets on refresh — except
-// daily check-ins, which are saved to localStorage since "once per day"
-// only makes sense if it survives a page reload. Once Supabase is wired
-// up, check-ins should move to the `activity_logs` table instead.
+// daily check-ins and the long-term goal, which are saved to localStorage
+// since both need to survive a page reload to mean anything. Once Supabase
+// is wired up, these should move to `activity_logs` / `profiles` instead.
 const AppStateContext = createContext<AppState | null>(null);
 
 export function AppStateProvider({ children }: { children: ReactNode }) {
@@ -94,6 +96,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     const full: DailyCheckIn = {
       date: todayIsoDate(),
       skipped: true,
+      weight: null,
       sleepHours: null,
       sleepQuality: null,
       feeling: "",
@@ -106,11 +109,26 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 
   const todayCheckIn = checkIns[todayIsoDate()] ?? null;
 
-  function setGoal(goalType: GoalType) {
+  function setGoal(goalType: GoalType, custom?: { description: string; guidance: string }) {
+    // Snapshot "where you're starting from" using today's check-in (if any)
+    // and how many recipes have been generated so far — this is what lets
+    // the Goals tab show a "then vs now" comparison later.
+    const baseline: GoalBaseline = {
+      date: todayIsoDate(),
+      weight: todayCheckIn?.weight ?? null,
+      feeling: todayCheckIn?.feeling ?? "",
+      sleepHours: todayCheckIn?.sleepHours ?? null,
+      sleepQuality: todayCheckIn?.sleepQuality ?? null,
+      recipesCookedCount: recipeHistory.length,
+    };
+
     const full: GoalState = {
       goal: goalType,
+      customDescription: custom?.description,
+      customGuidance: custom?.guidance,
       setDate: todayIsoDate(),
       lastConfirmedDate: todayIsoDate(),
+      baseline,
     };
     saveGoal(full);
     setGoalState(full);
@@ -142,6 +160,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
         removeRecipeFromHistory,
         clearRecipeHistory,
         todayCheckIn,
+        checkIns,
         checkInOpen,
         openCheckIn: () => setCheckInOpen(true),
         closeCheckIn: () => setCheckInOpen(false),

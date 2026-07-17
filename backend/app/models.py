@@ -37,3 +37,12 @@ class RecipeResponse(BaseModel):
     steps: list[RecipeStep]
     macro_estimate: MacroEstimate
     equipment_used: list[str]
+
+
+class GoalRequest(BaseModel):
+    description: str  # free text, e.g. "I want to look good for a wedding in October"
+
+
+class GoalResponse(BaseModel):
+    summary: str  # short goal name/title, e.g. "Lean out for October wedding"
+    guidance: str  # 1-2 sentences of practical macro/food guidance, fed into recipe generation

@@ -54,7 +54,11 @@ export default function KitchenPage() {
         time_constraint_min: timeConstraintMin,
         activity_level: activityLevel,
         sleep_context: buildSleepContext(),
-        goal_context: goal ? `goal: ${goal.goal}` : undefined,
+        goal_context: goal
+          ? goal.goal === "custom"
+            ? `goal: custom — ${goal.customGuidance ?? goal.customDescription}`
+            : `goal: ${goal.goal}`
+          : undefined,
       })) as Recipe;
 
       setRecipe(result);

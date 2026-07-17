@@ -30,3 +30,14 @@ def test_generate_recipe_mock_mode(monkeypatch):
     data = response.json()
     assert "title" in data
     assert len(data["steps"]) > 0
+
+
+def test_generate_goal_mock_mode(monkeypatch):
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+
+    response = client.post("/generate-goal", json={"description": "look good for a wedding"})
+    assert response.status_code == 200
+
+    data = response.json()
+    assert "summary" in data
+    assert "guidance" in data

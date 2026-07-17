@@ -7,9 +7,12 @@ create table profiles (
   display_name text,
   subscription_tier text not null default 'free', -- 'free' | 'plus'
   daily_step_goal int,
-  goal text,                      -- 'recover' | 'maintain' | 'gain'
+  goal text,                      -- 'recover' | 'maintain' | 'gain' | 'cut' | 'custom'
+  goal_custom_description text,   -- only for goal = 'custom'
+  goal_custom_guidance text,      -- only for goal = 'custom'
   goal_set_at timestamptz,
   goal_last_confirmed_at timestamptz,
+  goal_baseline jsonb,            -- snapshot at goal_set_at: {weight, feeling, sleep_hours, sleep_quality, recipes_cooked_count}
   created_at timestamptz not null default now()
 );
 
@@ -41,14 +44,22 @@ create table ingredients (
   created_at timestamptz not null default now()
 );
 
--- Activity logs, drive the "digital nutritionist" recommendations
+-- Activity logs — doubles as the daily check-in record (sleep, weight, feeling)
 create table activity_logs (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references profiles(id) on delete cascade,
   logged_at timestamptz not null default now(),
-  activity_level text not null,   -- 'heavy_workout' | 'active_light' | 'sedentary'
+  log_date date not null default current_date, -- one check-in per user per day
+  skipped boolean not null default false,
+  activity_level text,            -- 'heavy_workout' | 'active_light' | 'sedentary'
   activity_type text,             -- 'lifting' | 'bouldering' | 'cardio' | null
-  notes text
+  weight numeric,
+  sleep_hours numeric,
+  sleep_quality int,               -- 1 (rough) - 4 (great)
+  feeling text,
+  food_changes text,
+  notes text,
+  unique (user_id, log_date)
 );
 
 -- Generated recipes/instructions (cache + history)
